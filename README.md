@@ -30,9 +30,6 @@ git clone https://github.com/cikaldev/appstarter-hmvc my-project
 gh repo clone cikaldev/appstarter-hmvc my-project
 ```
 
-## Footnote
-Inside this project i have already create the `modules` directory, with one sample **demo module**. So you can direct test the project using following url `http://my-project.domain/demo`.
-
 ---
 
 Happy coding.. :smile:<br>
