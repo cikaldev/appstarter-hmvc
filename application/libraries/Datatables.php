@@ -293,7 +293,7 @@
       $mColArray = $this->ci->input->post('columns');
       $sWhere = '';
       $search = $this->ci->input->post('search');
-      $sSearch = $this->ci->db->escape_like_str(trim($search['value']));
+      $sSearch = isset($search['value']) ? $this->ci->db->escape_like_str(trim($search['value'])) : '';
       $columns = array_values(array_diff($this->columns, $this->unset_columns));
       if($sSearch != '')
         for($i = 0; $i < count($mColArray); $i++)
@@ -446,7 +446,7 @@
     private function check_cType()
     {
       $column = $this->ci->input->post('columns');
-      if(is_numeric($column[0]['data']))
+      if(isset($column) && is_numeric($column[0]['data']))
         return FALSE;
       else
         return TRUE;
