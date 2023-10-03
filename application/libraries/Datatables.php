@@ -395,8 +395,7 @@
         $this->ci->db->distinct($this->distinct);
         $this->ci->db->select($this->columns);
       }
-      $query = $this->ci->db->get($this->table, NULL, NULL, FALSE);
-      return $query->num_rows();
+      return $this->ci->db->count_all($this->table);
     }
     /**
     * Runs callback functions and makes replacements
