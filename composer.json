@@ -15,7 +15,8 @@
   "require": {
     "php": ">=5.6",
     "dompdf/dompdf": "^2.0",
-    "rah/danpu": "^2.7"
+    "rah/danpu": "^2.7",
+    "aws/aws-sdk-php": "^3.283"
   },
   "support": {
     "forum": "https://t.me/codeigniterindonesia",
