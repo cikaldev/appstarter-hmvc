@@ -12,9 +12,14 @@ class Spaces
   public function __construct($config=array())
   {
     $this->ci =& get_instance();
-    if (empty($config)) show_error('No config present!', 400, 'Spaces');
 
-    $this->client = new S3Client($config);
+    if (!empty($config)) {
+      $this->client = new S3Client($config);
+    } else {
+      $this->ci->config->load('spaces', false, true);
+      $options = $this->ci->config->item('SPACES_OPTION');
+      $this->client = new S3Client($options);
+    }
   }
 
   public function getListBucket()
@@ -23,12 +28,54 @@ class Spaces
     return $this;
   }
 
-  public function getListFileFromBucket(string $bucketName)
+  public function getListFileFromBucket(string $bucketName, string $marker='')
   {
     $this->data = $this->client->listObjects([
       'Bucket' => $bucketName,
+      'Marker' => $marker,
     ]);
 
+    return $this;
+  }
+
+  public function getAllListFileFromBucket(string $bucketName)
+  {
+    $data = [];
+    $size = 0;
+    $temp = $this->getListFileFromBucket($bucketName)->toArray();
+    foreach ($temp['Contents'] as $val) {
+      $data[] = [
+        'Key' => $val['Key'],
+        'LastModified' => $val['LastModified'],
+        'Size' => $this->sizeFilter((int)$val['Size']),
+        'ETag' => preg_replace("/[^a-zA-Z0-9]+/", "", $val['ETag']),
+      ];
+      $size += (int)$val['Size'];
+    }
+
+    if ($temp['IsTruncated']) {
+      do {
+        $temp = $this->getListFileFromBucket($bucketName, $temp['NextMarker'])->toArray();
+        foreach ($temp['Contents'] as $val) {
+          $data[] = [
+            'Key' => $val['Key'],
+            'LastModified' => $val['LastModified'],
+            'Size' => $this->sizeFilter((int)$val['Size']),
+            'ETag' => preg_replace("/[^a-zA-Z0-9]+/", "", $val['ETag']),
+          ];
+          $size += (int)$val['Size'];
+        }
+      } while($temp['IsTruncated']);
+    }
+
+    $this->data = [
+      'bucket' => [
+        'name' => $bucketName,
+        'size' => $this->sizeFilter($size),
+        'items' => count($data),
+      ],
+      'items' => $data,
+    ];
     return $this;
   }
 
@@ -142,6 +189,13 @@ class Spaces
         ->set_content_type('application/json')
         ->set_output(json_encode($result));
     }
+  }
+
+  private function sizeFilter($bytes)
+  {
+    $label = array( 'B', 'KB', 'MB', 'GB', 'TB', 'PB' );
+    for( $i = 0; $bytes >= 1024 && $i < ( count( $label ) -1 ); $bytes /= 1024, $i++ );
+    return( round( $bytes, 2 ) . " " . $label[$i] );
   }
 
 }
